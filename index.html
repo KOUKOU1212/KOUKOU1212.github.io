@@ -1,5 +1,210 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><title>hello</title></head>
-<body><h1>hello</h1><p>site is up.</p></body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KOUKOU — Works</title>
+<meta name="description" content="KOUKOU — AI video and image works. Tokyo, Hiyori face-lock LoRA, first frames.">
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#14181d; --panel2:#1a1f25; --text:#eef1f4; --muted:#9aa4ad;
+    --line:#262c33; --accent:#2dd4a7; --accent2:#7dd3fc;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.6}
+  a{color:var(--accent)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  header{position:sticky;top:0;z-index:10;background:rgba(11,13,16,.88);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
+  .logo{font-weight:800;letter-spacing:.14em;font-size:18px}
+  .logo span{color:var(--accent)}
+  nav a{color:var(--muted);text-decoration:none;margin-left:20px;font-size:14px}
+  nav a:hover{color:var(--text)}
+  section{padding:64px 0}
+  h1{font-size:clamp(30px,5vw,52px);line-height:1.15;margin:0 0 12px}
+  h2{font-size:26px;margin:0 0 8px}
+  .lede{color:var(--muted);max-width:640px;margin:0 0 28px}
+  .eyebrow{color:var(--accent);letter-spacing:.18em;text-transform:uppercase;font-size:12px;font-weight:700}
+  /* Hero video: no text overlay on the video itself */
+  .video-shell{position:relative;border-radius:16px;overflow:hidden;
+    border:1px solid var(--line);background:#000;aspect-ratio:1280/704}
+  .video-shell video{width:100%;height:100%;display:block;object-fit:cover;background:#000}
+  .video-cover{position:absolute;inset:0;border:0;padding:0;background:transparent;cursor:pointer;width:100%;height:100%}
+  .video-cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .video-cover .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:76px;height:76px;border-radius:50%;background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center}
+  .video-cover .play svg{width:30px;height:30px;fill:#fff;margin-left:4px}
+  .video-cover[hidden]{display:none}
+  .video-meta{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-top:14px}
+  .video-meta b{color:var(--text)}
+  /* LoRA comparison: contain, 1:1, never crop the head */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+  @media (max-width:640px){.compare{grid-template-columns:1fr}}
+  .compare figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .compare img{width:100%;aspect-ratio:1/1;object-fit:contain;object-position:center top;
+    display:block;background:#0e1114}
+  .compare figcaption{padding:12px 14px;font-size:14px;color:var(--muted)}
+  .compare figcaption b{color:var(--text)}
+  .tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;
+    border:1px solid var(--line);margin-right:8px}
+  .tag.on{color:var(--accent);border-color:var(--accent)}
+  /* First frames */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}
+  @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .card img{width:100%;aspect-ratio:1/1;object-fit:contain;display:block;background:#0e1114}
+  .card p{margin:0;padding:10px 12px;font-size:14px}
+  .card p span{color:var(--muted);font-size:12px;display:block}
+  /* Process */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}
+  @media (max-width:900px){.steps{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:520px){.steps{grid-template-columns:1fr}}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .step .num{font-size:28px;font-weight:800;color:var(--accent)}
+  .step h3{margin:8px 0 4px;font-size:16px}
+  .step p{margin:0;color:var(--muted);font-size:14px}
+  /* Contact */
+  form{margin-top:24px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  label{display:block;font-size:14px;margin:14px 0 6px}
+  label:first-child{margin-top:0}
+  input,textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+    color:var(--text);padding:10px 12px;font:inherit}
+  textarea{min-height:120px;resize:vertical}
+  button{margin-top:18px;background:var(--accent);color:#06281f;border:0;border-radius:999px;
+    padding:11px 22px;font:inherit;font-weight:700;cursor:pointer}
+  button:hover{filter:brightness(1.08)}
+  .note{color:var(--muted);font-size:13px;margin-top:12px}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="logo">KOUKOU<span>.</span></div>
+    <nav>
+      <a href="#tokyo">Tokyo</a>
+      <a href="#lora">Face Lock</a>
+      <a href="#frames">First Frames</a>
+      <a href="#process">Process</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="tokyo">
+    <p class="eyebrow">Featured Work</p>
+    <h1>Tokyo, in twenty seconds.</h1>
+    <p class="lede">Four connected scenes, one walk through Tokyo at dusk — Shibuya crossing, a lantern alley, a night market, and Tokyo Tower square.</p>
+    <div class="video-shell">
+      <video id="tokyoVideo" src="assets/tokyo_20s.mp4" poster="assets/tokyo_poster.jpg"
+        preload="none" playsinline controls></video>
+      <button class="video-cover" id="videoCover" type="button" aria-label="Play video">
+        <img src="assets/tokyo_poster.jpg" alt="Tokyo video cover — Shibuya crossing">
+        <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+      </button>
+    </div>
+    <div class="video-meta">
+      <span><b>4</b> scenes</span>
+      <span><b>20.2s</b> duration</span>
+      <span><b>1280×704</b></span>
+      <span><b>30fps</b></span>
+    </div>
+  </section>
+
+  <section id="lora">
+    <p class="eyebrow">Hiyori · Face Lock</p>
+    <h2>One face, every scene.</h2>
+    <p class="lede">A face-lock LoRA trained on Hiyori keeps the same face across outfits, scenes and shots. Same prompt, same scene — the difference is the LoRA.</p>
+    <div class="compare" id="hiyori-card">
+      <figure>
+        <img src="assets/lora-with.png" alt="Same scene with LoRA — Hiyori, snow town, beige coat">
+        <figcaption><span class="tag on">With LoRA</span><b>Hiyori</b> — face locked, snow town, beige coat</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/lora-without.png" alt="Same scene without LoRA">
+        <figcaption><span class="tag">Without LoRA</span>Same scene, no face lock</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="frames">
+    <p class="eyebrow">First Frames</p>
+    <h2>Eight scenes, one face.</h2>
+    <p class="lede">Eight candidate first frames — same Hiyori, different outfits and scenes. Pick one, and the video follows it.</p>
+    <div class="grid">
+      <div class="card"><img src="assets/batch_01_cafe_seed201.png" alt="First frame — cafe"><p>Cafe<span>Seed 201</span></p></div>
+      <div class="card"><img src="assets/batch_02_campus_seed202.png" alt="First frame — campus"><p>Campus<span>Seed 202</span></p></div>
+      <div class="card"><img src="assets/batch_03_snowy_seed203.png" alt="First frame — snowy"><p>Snowy<span>Seed 203</span></p></div>
+      <div class="card"><img src="assets/batch_04_seaside_seed204.png" alt="First frame — seaside"><p>Seaside<span>Seed 204</span></p></div>
+      <div class="card"><img src="assets/batch_05_night_seed205.png" alt="First frame — night"><p>Night<span>Seed 205</span></p></div>
+      <div class="card"><img src="assets/batch_06_closeup_seed206.png" alt="First frame — closeup"><p>Closeup<span>Seed 206</span></p></div>
+      <div class="card"><img src="assets/batch_07_sakura_seed207.png" alt="First frame — sakura"><p>Sakura<span>Seed 207</span></p></div>
+      <div class="card"><img src="assets/batch_08_reading_seed208.png" alt="First frame — reading"><p>Reading<span>Seed 208</span></p></div>
+    </div>
+  </section>
+
+  <section id="process">
+    <p class="eyebrow">Process</p>
+    <h2>How a piece is made.</h2>
+    <div class="steps">
+      <div class="step"><div class="num">01</div><h3>Lock the face</h3><p>Train a LoRA on Hiyori so the face stays the same.</p></div>
+      <div class="step"><div class="num">02</div><h3>Pick a first frame</h3><p>Generate candidate stills, choose the one that fits the scene.</p></div>
+      <div class="step"><div class="num">03</div><h3>Animate it</h3><p>Turn the still into motion, scene by scene, frame to frame.</p></div>
+      <div class="step"><div class="num">04</div><h3>Finish</h3><p>Cut the scenes together into one short film.</p></div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <p class="eyebrow">Contact</p>
+    <h2>Work together?</h2>
+    <p class="lede">Tell me what you have in mind. Your message goes through the form — nothing else about me is listed here.</p>
+    <form name="contact" method="POST" data-netlify="true">
+      <input type="hidden" name="form-name" value="contact">
+      <label for="name">Name</label>
+      <input id="name" name="name" type="text" required autocomplete="name">
+      <label for="message">Message</label>
+      <textarea id="message" name="message" required></textarea>
+      <button type="submit">Send message</button>
+      <p class="note">No email address or other contact details are shown on this page.</p>
+    </form>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">© KOUKOU — Works</div>
+</footer>
+
+<script>
+(function(){
+  var video = document.getElementById('tokyoVideo');
+  var cover = document.getElementById('videoCover');
+  function play(){
+    cover.hidden = true;
+    video.play();
+  }
+  cover.addEventListener('click', play);
+  video.addEventListener('ended', function(){ cover.hidden = false; });
+  // Pause automatically when the video scrolls out of view (visible < 25%).
+  // Do not auto-resume.
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.intersectionRatio < 0.25 && !video.paused) {
+          video.pause();
+        }
+      });
+    }, { threshold: [0, 0.25, 1] });
+    observer.observe(video);
+  }
+})();
+</script>
+</body>
 </html>
